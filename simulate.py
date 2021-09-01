@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import numpy as np
@@ -9,7 +8,7 @@ from brian2 import ms, um, cm, mV, nS, siemens, ufarad, amp
 from brian2.core.functions import timestep
 
 
-def run(inp_spikes, scat, weight=.2*nS, VT=-60 * mV, duration=100 * ms):
+def run(inp_spikes, scat, weight=.2*nS, VT=-62 * mV, duration=100 * ms):
     """Run a simulation of a granule cell.
 
     Parameters
@@ -69,13 +68,13 @@ def run(inp_spikes, scat, weight=.2*nS, VT=-60 * mV, duration=100 * ms):
     net.add(neuron)
 
     # Set the connections
-    syn1 = br2.Synapses(inp, neuron, 'w : siemens (constant)', on_pre='gs1 = gs1 + w ; gs1 = clip(gs1, 0*nS, .1*nS)', name='syn1')
+    syn1 = br2.Synapses(inp, neuron, 'w : siemens (constant)', on_pre='gs1 = gs1 + w ; gs1 = clip(gs1, 0*nS, 0.1*nS)', name='syn1')
     syn1.connect(i=0, j=morpho)
     syn1.w = weight/2
     net.add(syn1)
 
     if scat:
-        syn2 = br2.Synapses(inp, neuron, 'w : siemens (constant)', on_pre='gs2 = gs2 + w ; gs2 = clip(gs2, 0*nS, 0.5*nS)', name='syn2')
+        syn2 = br2.Synapses(inp, neuron, 'w : siemens (constant)', on_pre='gs2 = gs2 + w ; gs2 = clip(gs2, 0*nS, 0.1*nS)', name='syn2')
         syn2.connect(i=0, j=morpho)
         syn2.w = weight/2
         net.add(syn2)
@@ -135,22 +134,27 @@ if __name__ == "__main__":
 
     #Running the simulation
     n_spikes = []
-    inp = [np.array([10*i for i in range(10)])*ms]
-    for c_sat in [True, False]:
+    inp = [np.array([15*i for i in range(10)])*ms]
+    colors = ['black', 'grey']
+    fig, ax = plt.subplots(figsize=(3.5, 2))
+    for i, c_sat in enumerate([True, False]):
         mon, spike_mon = run(inp, c_sat)
         n_spikes += [len(spike_mon)]
-        plt.plot(mon.v[0]/mV)
-    plt.show()
-    """
-    n_spikes = 2*[n_spikes[1]*10, n_spikes[1]*10] + 2*[n_spikes[0]*10, n_spikes[1]*10]
-    colors = ["black", "grey"]*4
-    fig, ax = plt.subplots(figsize=(3.5, 2))
-    ax.bar([0.1, 0.9, 2.1, 2.9, 4.1, 4.9, 6.1, 6.9], n_spikes, color=colors)
+        ax.plot(mon.t/ms, mon.v[0]/mV, color=colors[i], lw=2)
+    ax.set_xlabel('Time (ms)')
+    ax.set_ylabel('Voltage (mV)')
     adjust_spines(ax, ["left", "bottom"])
-    ax.set_ylim(90,160)
+    plt.tight_layout()
+    plt.savefig(figdir + "Fig1E.png",dpi=300)
+    plt.close
+
+    n_spikes = 2*[n_spikes[1]*10, n_spikes[1]*10] + 2*[n_spikes[0]*10, n_spikes[1]*10]
+    fig, ax = plt.subplots(figsize=(3.5, 2))
+    ax.bar([0.1, 0.9, 2.1, 2.9, 4.1, 4.9, 6.1, 6.9], n_spikes, color=colors*4)
+    adjust_spines(ax, ["left", "bottom"])
+    ax.set_ylim(10,90)
     ax.set_yticks([])
     ax.set_xticks([])
-    ax.set_xlabel('Time')
+    ax.set_xlabel('Episode')
     ax.set_ylabel('Out. Frequency')
     plt.savefig(figdir + "Fig1D.png",dpi=300)
-    """
