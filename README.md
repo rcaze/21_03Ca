@@ -5,6 +5,6 @@ Pyhon 3+, Numpy, Matpltolib and Brian 2
 
 # Running
 
-   pyhon simulate.pyhon
+   pyhon simulate.py
 
-This will generate the figure from the article
+This will generate the two panles of the figure from the article
